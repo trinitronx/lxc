@@ -1,3 +1,12 @@
+require 'ipaddr'
+
+## Define to_cidr method on IPAddr for use with static ipv4 LXC config setting
+IPAddr.class_eval
+  def to_cidr
+    "/" + self.to_i.to_s(2).count("1")
+  end
+end
+
 def load_current_resource
   @lxc = ::Lxc.new(
     new_resource.name,
@@ -53,6 +62,7 @@ action :create do
   if(new_resource.default_config)
     lxc_config new_resource.name do
       action :create
+      ipv4 new_resource.static_ip + IPAddr.new(new_resource.static_netmask).to_cidr if new_resource.static_ip and new_resource.static_netmask
       default_bridge new_resource.default_bridge
     end
   end
